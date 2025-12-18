@@ -1,9 +1,8 @@
 package events;
 
+import main.Main;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -21,12 +20,12 @@ public class CommandListener extends ListenerAdapter {
 	public void onMessageReceived(MessageReceivedEvent e) {
 		if(!e.getAuthor().isBot() && e.getMessage().getContentRaw().startsWith("!")) {
 			String[] message = e.getMessage().getContentRaw().toLowerCase().substring(1).split(" ");
-			if(e.getChannel() instanceof ThreadChannel threadChannel && threadChannel.getParentChannel().getId().equals("1414699886124728370")) {
+			if(e.getChannel() instanceof ThreadChannel threadChannel && Utils.isForumChannel(threadChannel)) {
 				ForumChannel parent = threadChannel.getParentChannel().asForumChannel();
 				try {
 					switch(message[0]) {
 						case "claim" -> {
-							if(Utils.isStaff(e.getMember())) {
+							if(Utils.isMod(e.getMember())) {
 								if(threadChannel.getAppliedTags().contains(Utils.getTagByName("open", parent))) {
 									// apply correct tag + rename channel to include the TA name
 									String nickname = e.getMember().getNickname();
@@ -57,7 +56,7 @@ public class CommandListener extends ListenerAdapter {
 							}
 						}
 						case "unclaim" -> {
-							if(Utils.isStaff(e.getMember())) {
+							if(Utils.isMod(e.getMember())) {
 								if(threadChannel.getAppliedTags().contains(Utils.getTagByName("claimed", parent))) {
 									// check if the person who claimed the ticket is the person who is running the command
 									String newMessage = """
@@ -93,7 +92,7 @@ public class CommandListener extends ListenerAdapter {
 							}
 						}
 						case "close" -> {
-							if(Utils.isStaff(e.getMember()) || Utils.isOP(threadChannel, e.getMember())) {
+							if(Utils.isMod(e.getMember()) || Utils.isOP(threadChannel, e.getMember())) {
 								if(!threadChannel.getAppliedTags().contains(Utils.getTagByName("closed", parent))) {
 									// check if the person who claimed the ticket is the person who is running the command, or the original poster
 									String newMessage = """
@@ -206,7 +205,7 @@ public class CommandListener extends ListenerAdapter {
 					 * - Tickets that were claimed but never closed will calculate based on the last message sent
 					 */
 
-					ForumChannel channel = e.getGuild().getForumChannelById("1414699886124728370");
+					ForumChannel channel = e.getGuild().getForumChannelById(Main.getForumChannelID());
 					List<ThreadChannel> tickets = new ArrayList<>(channel.getThreadChannels());
 					List<ThreadChannel> archivedThreads = channel.retrieveArchivedPublicThreadChannels()
 							.stream()
@@ -245,7 +244,7 @@ public class CommandListener extends ListenerAdapter {
 						long timeToClose = 0;
 						String status = "open";
 						for(Message m : messages) {
-							if(firstTAMessage == null && e.getGuild().getMemberById(m.getAuthor().getId()).getRoles().contains(e.getGuild().getRoleById("1410989464506863616"))) {
+							if(firstTAMessage == null && Utils.isMod(e.getGuild().getMemberById(m.getAuthor().getId()))) {
 								System.out.println("This is the first TA message:");
 								firstTAMessage = m;
 							}
@@ -257,7 +256,7 @@ public class CommandListener extends ListenerAdapter {
 							String previousContent = previousMessage.getContentRaw();
 
 							// if the previous String was a command (e.g. !claim), this checks for the bot's success message as the current message.  if the bot message is not detected, assume the command went through
-							if(previousContent.startsWith("!claim") && (!e.getAuthor().getId().equals("1414701652757315664") || content.contains("You have successfully claimed this ticket!"))) {
+							if(previousContent.startsWith("!claim") && (!e.getAuthor().getId().equals(e.getJDA().getSelfUser().getId()) || content.contains("You have successfully claimed this ticket!"))) {
 								whenClaimed = m.getTimeCreated();
 								if(status.equals("open")) {
 									taTracker.put(previousMessage.getAuthor().getId(), taTracker.getOrDefault(previousMessage.getAuthor().getId(), 0) + 1);
@@ -272,15 +271,15 @@ public class CommandListener extends ListenerAdapter {
 									System.out.println("Reopened ticket claimed at " + whenClaimed);
 								}
 								status = "claimed";
-							} else if(previousContent.startsWith("!unclaim") && status.equals("claimed") && (!e.getAuthor().getId().equals("1414701652757315664") || content.contains("You have successfully unclaimed this ticket!"))) {
+							} else if(previousContent.startsWith("!unclaim") && status.equals("claimed") && (!e.getAuthor().getId().equals(e.getJDA().getSelfUser().getId()) || content.contains("You have successfully unclaimed this ticket!"))) {
 								taUnclaimTracker.put(previousMessage.getAuthor().getId(), taUnclaimTracker.getOrDefault(previousMessage.getAuthor().getId(), 0) + 1);
 								unclaims++;
 								System.out.println("Unclaimed");
 								whenClaimed = OffsetDateTime.MIN;
 								status = "open";
-							} else if(previousContent.startsWith("!close") && (!e.getAuthor().getId().equals("1414701652757315664") || content.contains("You have successfully closed this ticket!"))) {
+							} else if(previousContent.startsWith("!close") && (!e.getAuthor().getId().equals(e.getJDA().getSelfUser().getId()) || content.contains("You have successfully closed this ticket!"))) {
 								OffsetDateTime closed = m.getTimeCreated();
-								if(e.getGuild().getMemberById(previousMessage.getAuthor().getId()).getRoles().contains(e.getGuild().getRoleById("1410989464506863616"))) {
+								if(Utils.isMod(e.getGuild().getMemberById(previousMessage.getAuthor().getId()))) {
 									if(status.equals("claimed")) {
 										timeToClose = closed.toEpochSecond() - whenClaimed.toEpochSecond();
 										System.out.println("Closed at " + closed + " by a TA, took " + timeToClose + " seconds");
@@ -294,7 +293,7 @@ public class CommandListener extends ListenerAdapter {
 								}
 								whenClaimed = OffsetDateTime.MIN;
 								status = "closed";
-							} else if(previousContent.startsWith("!reopen") && status.equals("closed") && (!e.getAuthor().getId().equals("1414701652757315664") || content.contains("You have successfully reopened this ticket!"))) {
+							} else if(previousContent.startsWith("!reopen") && status.equals("closed") && (!e.getAuthor().getId().equals(e.getJDA().getSelfUser().getId()) || content.contains("You have successfully reopened this ticket!"))) {
 								reopens++;
 								System.out.println("Reopened");
 								whenClaimed = OffsetDateTime.MIN;

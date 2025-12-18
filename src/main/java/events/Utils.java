@@ -1,7 +1,10 @@
 package events;
 
+import main.Main;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.entities.channel.forums.ForumTag;
@@ -55,26 +58,13 @@ public class Utils {
 	}
 
 	/**
-	 * Determines if a given member has a staff role in their guild.
+	 * Checks if a given member has ADMINISTRATOR permissions.
 	 * <br>
-	 * This method checks if the member has any of the predefined staff roles
-	 * in the guild by verifying their role IDs.
-	 *
-	 * @param member the member to be checked for staff roles
-	 * @return true if the member has a staff role, false otherwise
-	 */
-	public static boolean isStaff(Member member) {
-		return member.getRoles().contains(member.getGuild().getRoleById("1410989464506863616")) || member.getRoles().contains(member.getGuild().getRoleById("1410989547285909634"));
-	}
-
-	/**
-	 * Checks if a given member has an admin role in their guild.
-	 * <br>
-	 * This method verifies whether the member possesses any of the predefined admin roles
-	 * by checking their role
+	 * @param member The Member in question
+	 * @return Whether the Member has Admin perms
 	 */
 	public static boolean isAdmin(Member member) {
-		return member.getRoles().contains(member.getGuild().getRoleById("1410989244276805764")) || member.getRoles().contains(member.getGuild().getRoleById("1410989547285909634"));
+		return member.getPermissions().contains(Permission.ADMINISTRATOR);
 	}
 
 	/**
@@ -122,5 +112,42 @@ public class Utils {
 			botMessage = channel.sendMessage(newMessage).complete();
 			botMessage.pin().queue();
 		}
+	}
+
+	/**
+	 * Checks if a given Object is equal to the forum channel
+	 *
+	 * @param object The Object in question
+	 * @return If the Object is the forum channel
+	 */
+	public static boolean isForumChannel(Object object) {
+		if(!(object instanceof ThreadChannel)) {
+			return false;
+		}
+		return Main.getForumChannelID().equals(((ThreadChannel) object).getId());
+	}
+
+	/**
+	 * Checks if a given Object is equal to the Mod role
+	 *
+	 * @param object The Object in question
+	 * @return If the Object is the Mod role
+	 */
+	public static boolean isModRole(Object object) {
+		if(!(object instanceof Role)) {
+			return false;
+		}
+
+		return Main.getModRoleID().equals(((Role) object).getId());
+	}
+
+	/**
+	 * Checks if a Member is a moderator for the forum
+	 *
+	 * @param member The Member in question
+	 * @return If the Member is a moderator
+	 */
+	public static boolean isMod(Member member) {
+		return member.getRoles().stream().anyMatch(role -> role.getId().equals(Main.getModRoleID()));
 	}
 }
