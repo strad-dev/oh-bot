@@ -1,4 +1,4 @@
-# HOW TO SET UP THIS BOT
+# Setup
 ## Discord Developer Mode
 Developer Mode is a feature on Discord that exposes the internal IDs of every entity (e.g. roles, users, channels).  It is required to explicitly tell the Discord API which entity is being referenced.
 
@@ -33,6 +33,8 @@ A mistake (that I have done many times) is not right-clicking the correct entity
 10. Make sure Integration Type is set to Guild.  Then, copy the generated URL and add the bot to your server.
 
 ## .env File & General Config
+Copy the .env.example file and rename it to .env.
+
 Three bits of information are required for the bot to work.
 1. Bot Token (see Step 4-6 in Setting Up Your Bot if you don't have it)
 2. The ID of the Forum Channel.  Right click your Forum Channel and copy its ID.
@@ -63,6 +65,10 @@ This bot utilizes the Discord Forum channel.  Each thread is a separate Ticket, 
 
 ## Commands
 
+`!help` - Show this help message
+
+`!validate` - Ensures that your config is correct.
+
 `!claim` - TAs only.  Claim a ticket as yours.  Only one TA may claim a ticket at a time.
 
 `!unclaim` - TAs only.  Unclaim a ticket if you cannot solve a problem.  Only the person who claimed the ticket may unclaim it.
@@ -70,6 +76,8 @@ This bot utilizes the Discord Forum channel.  Each thread is a separate Ticket, 
 `!close` - TAs and OP only.  Close a ticket (aka mark it as solved).  Only the person who claimed the ticket or the original poster may close it.
 
 `!reopen` - OP only.  If you need additional help related to the topic, run this command.  Only the original poster may reopen a ticket.
+
+`!analyze` - Run an analysis of the channel.  **WARNING: EXPERIMENTAL.  RESULTS MAY BE VERY INACCURATE.**
 						
 **NOTE**: All Instructors and Mods can use all commands in any ticket.
 
