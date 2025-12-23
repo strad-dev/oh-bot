@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.DayOfWeek;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -23,21 +22,6 @@ import static events.CommandListener.isPeakHours;
 
 class CreateAnalysisThread implements Runnable {
 	private static MessageReceivedEvent e;
-
-	static class InternalDateTime {
-		DayOfWeek dayOfWeek;
-		int hour;
-
-		InternalDateTime(DayOfWeek dayOfWeek, int hour) {
-			this.dayOfWeek = dayOfWeek;
-			this.hour = hour;
-		}
-
-		@Override
-		public String toString() {
-			return dayOfWeek + " " + hour;
-		}
-	}
 
 	public static void setEvent(MessageReceivedEvent event) {
 		e = event;
@@ -68,11 +52,12 @@ class CreateAnalysisThread implements Runnable {
 		List<ThreadChannel> archivedThreads = channel.retrieveArchivedPublicThreadChannels().stream().toList();
 		tickets.addAll(archivedThreads);
 		System.out.println("Analyzing a list of " + tickets.size() + " tickets.");
+		e.getChannel().sendMessage("Analyzing a list of " + tickets.size() + " tickets.").queue();
 		Map<String, Integer> taTracker = new HashMap<>();
 		Map<String, Long> taTimeTracker = new HashMap<>();
 		Map<String, Integer> taUnclaimTracker = new HashMap<>();
 		Map<String, Integer> studentTracker = new HashMap<>();
-		Map<InternalDateTime, Integer> hourTracker = new HashMap<>();
+		Map<String, Integer> hourTracker = new HashMap<>();
 		int unclaims = 0;
 		int reopens = 0;
 		int peakTickets = 0;
@@ -82,6 +67,9 @@ class CreateAnalysisThread implements Runnable {
 		long claimToClose = 0;
 		int count = 0;
 		for(ThreadChannel tc : tickets) {
+			if(count % 50 == 0 && count > 0) {
+				e.getChannel().sendMessage("Finished analyzing " + count + "/" + tickets.size() + " tickets.").queue();
+			}
 			studentTracker.put(tc.getOwnerId(), studentTracker.getOrDefault(tc.getOwnerId(), 0) + 1);
 			OffsetDateTime created = tc.getTimeCreated();
 			if(isPeakHours(created, hourTracker)) {
@@ -207,6 +195,7 @@ class CreateAnalysisThread implements Runnable {
 		System.out.println("Total time spent helping students: " + claimToClose);
 		System.out.println("--------------------------------------------------");
 		System.out.println("Tickets at Time: " + hourTracker);
+		e.getChannel().sendMessage("Finished analyzing.  Pretty print is currently not supported.  Refer to command line for results.").queue();
 
 		finishAnalysis();
 	}
@@ -406,11 +395,11 @@ public class CommandListener extends ListenerAdapter {
 	 * @param hourTracker A Map that shows how many tickets are created in each hour block.  Pass null to avoid duplicating tickets.
 	 * @return			  If the given hour is a peak hour
 	 */
-	static boolean isPeakHours(OffsetDateTime time, @Nullable Map<CreateAnalysisThread.InternalDateTime, Integer> hourTracker) {
+	static boolean isPeakHours(OffsetDateTime time, @Nullable Map<String, Integer> hourTracker) {
 		ZonedDateTime estTime = time.atZoneSameInstant(ZoneId.of("America/New_York"));
 		int hour = estTime.getHour();
 		if(hourTracker != null) {
-			hourTracker.put(new CreateAnalysisThread.InternalDateTime(estTime.getDayOfWeek(), estTime.getHour()), hourTracker.getOrDefault(new CreateAnalysisThread.InternalDateTime(estTime.getDayOfWeek(), estTime.getHour()), 0) + 1);
+			hourTracker.put(estTime.getDayOfWeek() + " " + estTime.getHour(), hourTracker.getOrDefault(estTime.getDayOfWeek() + " " + estTime.getHour(), 0) + 1);
 		}
 		switch(estTime.getDayOfWeek()) {
 			case MONDAY -> {

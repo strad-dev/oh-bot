@@ -148,6 +148,6 @@ public class Utils {
 	 * @return If the Member is a moderator
 	 */
 	public static boolean isMod(Member member) {
-		return member.getRoles().stream().anyMatch(role -> role.getId().equals(Main.getModRoleID()));
+		return member != null && member.getRoles().stream().anyMatch(role -> role.getId().equals(Main.getModRoleID()));
 	}
 }
