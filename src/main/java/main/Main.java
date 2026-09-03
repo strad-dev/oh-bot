@@ -45,13 +45,15 @@ public class Main {
 		String token = System.getenv("BOT_TOKEN");
 		forumChannelID = System.getenv("FORUM_CHANNEL_ID");
 		modRoleID = System.getenv("MOD_ROLE_ID");
-		
+		String guildID = System.getenv("GUILD_ID");
+
 		// Fallback to dotenv for local development
 		if (token == null) {
 			Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 			token = dotenv.get("BOT_TOKEN");
 			forumChannelID = dotenv.get("FORUM_CHANNEL_ID");
 			modRoleID = dotenv.get("MODERATOR_ROLE_ID");
+			guildID = System.getenv("GUILD_ID");
 		}
 
 		//Message.suppressContentIntentWarning();
@@ -68,7 +70,7 @@ public class Main {
 		jda.awaitReady();
 		jda.getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
 		jda.getPresence().setActivity(Activity.customStatus("Following the design recipe!"));
-		//jda.getGuildById("1450952327883260007").loadMembers().onSuccess((member) -> System.out.println("Done"));
+		jda.getGuildById(guildID).loadMembers().onSuccess((member) -> System.out.println("Done"));
 	}
 
 	public static String getForumChannelID() {
