@@ -207,6 +207,7 @@ public class CommandListener extends ListenerAdapter {
 	@SuppressWarnings("DataFlowIssue")
 	public void onMessageReceived(MessageReceivedEvent e) {
 		if(!e.getAuthor().isBot() && e.getMessage().getContentRaw().startsWith("!")) {
+			//System.out.println("Command detected!");
 			String[] message = e.getMessage().getContentRaw().toLowerCase().substring(1).split(" ");
 			if(e.getChannel() instanceof ThreadChannel threadChannel && Utils.isForumChannel(threadChannel)) {
 				ForumChannel parent = threadChannel.getParentChannel().asForumChannel();
@@ -356,7 +357,7 @@ public class CommandListener extends ListenerAdapter {
 				String messageToSend = """
 						# HOW TO USE THIS BOT
 						**Office Hours Tickets**
-						Head over to <#1414699886124728370> and create a post.  A TA will be with you shortly.
+						Head over to <#1450952328516735209> and create a post.  A TA will be with you shortly.
 						
 						**Commands**
 						`!claim` - TAs only.  Claim a ticket as yours.  Only one TA may claim a ticket at a time.

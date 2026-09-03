@@ -41,24 +41,34 @@ public class Main {
 	private static String modRoleID;
 
 	public static void main(String[] args) throws InterruptedException {
-		Dotenv env = Dotenv.load();
+		// Read directly from system environment variables
+		String token = System.getenv("BOT_TOKEN");
+		forumChannelID = System.getenv("FORUM_CHANNEL_ID");
+		modRoleID = System.getenv("MOD_ROLE_ID");
+		
+		// Fallback to dotenv for local development
+		if (token == null) {
+			Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+			token = dotenv.get("BOT_TOKEN");
+			forumChannelID = dotenv.get("FORUM_CHANNEL_ID");
+			modRoleID = dotenv.get("MODERATOR_ROLE_ID");
+		}
 
-		String token = env.get("TOKEN");
-		forumChannelID = env.get("FORUMCHANNEL");
-		modRoleID = env.get("MODROLE");
-
-		Message.suppressContentIntentWarning();
-		JDA jda = JDABuilder.createDefault(token, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT)
+		//Message.suppressContentIntentWarning();
+		JDA jda = JDABuilder.createDefault(token)
+			    .enableIntents(
+			        GatewayIntent.GUILD_MESSAGES,
+			        GatewayIntent.GUILD_MEMBERS,
+			        GatewayIntent.MESSAGE_CONTENT
+			    )
 				.disableCache(CacheFlag.ACTIVITY, CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.CLIENT_STATUS, CacheFlag.ONLINE_STATUS, CacheFlag.SCHEDULED_EVENTS)
-				.setMemberCachePolicy(MemberCachePolicy.ALL)
 				.addEventListeners(new CommandListener())
 				.addEventListeners(new TicketCreate())
-				.useSharding(0, 1)
 				.build();
 		jda.awaitReady();
 		jda.getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
 		jda.getPresence().setActivity(Activity.customStatus("Following the design recipe!"));
-		jda.getGuildById("1410988823764013117").loadMembers().onSuccess((member) -> System.out.println("Done"));
+		//jda.getGuildById("1450952327883260007").loadMembers().onSuccess((member) -> System.out.println("Done"));
 	}
 
 	public static String getForumChannelID() {

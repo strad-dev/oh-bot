@@ -124,7 +124,10 @@ public class Utils {
 		if(!(object instanceof ThreadChannel)) {
 			return false;
 		}
-		return Main.getForumChannelID().equals(((ThreadChannel) object).getId());
+		//return Main.getForumChannelID().equals(((ThreadChannel) object).getId());
+		ThreadChannel thread = (ThreadChannel) object;
+    	return thread.getParentChannel() != null && 
+           Main.getForumChannelID().equals(thread.getParentChannel().getId());
 	}
 
 	/**
