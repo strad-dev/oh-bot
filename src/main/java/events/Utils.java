@@ -89,7 +89,7 @@ public class Utils {
 	 */
 	public static String getBotMessage(ThreadChannel channel, String fallback) {
 		try {
-			return channel.retrievePinnedMessages().complete().getFirst().getContentRaw();
+			return channel.retrievePinnedMessages().complete().getFirst().getMessage().getContentRaw();
 		} catch(NoSuchElementException exception) {
 			Message sentMessage = channel.sendMessage(fallback).complete();
 			sentMessage.pin().queue();
@@ -106,7 +106,7 @@ public class Utils {
 	public static void editBotMessage(ThreadChannel channel, String newMessage) {
 		Message botMessage;
 		try {
-			botMessage = channel.retrievePinnedMessages().complete().getFirst();
+			botMessage = channel.retrievePinnedMessages().complete().getFirst().getMessage();
 			botMessage.editMessage(newMessage).queue();
 		} catch(NoSuchElementException exception) {
 			botMessage = channel.sendMessage(newMessage).complete();
