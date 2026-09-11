@@ -46,7 +46,14 @@ You can verify that your config is correct using `!validate`
 
 ## Building and Hosting
 ### Command Line
-Contributions welcome!
+0. Start in the directory with the `pom.xml` file.  Run the following commands...
+1. `mvn clean compile`
+2. `mvn dependency:unpack-dependencies -DoutputDirectory=target/classes`
+3. `cd target/classes`
+4. `jar cfe ../bot.jar main.Main .`
+5. `cd ../..`
+6. `java -jar target/bot.jar`
+It is highly recommended to use GNU Screen or a similar application to ensure the bot stays online.
 
 ### IntelliJ
 1. Clone the repository into a directory.
@@ -57,7 +64,7 @@ Contributions welcome!
 6. The main class is in `main.Main`.  Leave the rest of the options as default.
 7. Save and close.  Then, go to Build --> Build Artifacts...
 8. Build the bot.  The output should be in out/artifacts/(artifactName).  Copy the JAR file onto your server.
-9. You can host this bot on pretty much any server with Java 21.  256MB of RAM is more than enough, 128MB might even be enough.  Make sure you don't host the bot on a window that closes on logout, use GNU Screen or a similar app.
+9. You can host this bot on pretty much any server with Java 25.  256MB of RAM is more than enough, 128MB might even be enough.  Make sure you don't host the bot on a window that closes on logout, use GNU Screen or a similar app.
 
 # Basic Guide
 ## Tickets
