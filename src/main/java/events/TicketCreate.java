@@ -10,7 +10,6 @@ public class TicketCreate extends ListenerAdapter {
 	public void onChannelCreate(ChannelCreateEvent e) {
 		if(e.getChannel() instanceof ThreadChannel channel) {
 			if(Utils.isForumChannel(channel)) {
-				//System.out.println("Creating ticket in thread: " + channel.getName());
 				Utils.editPost(channel, "", "open", "");
 				String message = """
 				**OPEN TICKET**
@@ -19,10 +18,7 @@ public class TicketCreate extends ListenerAdapter {
 				""";
 				Message sentMessage = channel.sendMessage(message).complete();
 				sentMessage.pin().queue();
-				//System.out.println("Ticket created successfully!");
 			}
-		} else {
-			//System.out.println("NOT a ThreadChannel, it's: " + e.getChannel().getClass().getSimpleName());
 		}
 	}
 }

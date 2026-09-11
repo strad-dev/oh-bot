@@ -31,16 +31,14 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.OnlineStatus;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.requests.GatewayIntent;
-import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 public class Main {
 	private static String forumChannelID;
 	private static String modRoleID;
 
-	public static void main(String[] args) throws InterruptedException {
+	static void main() throws InterruptedException {
 		// Read directly from system environment variables
 		String token = System.getenv("BOT_TOKEN");
 		forumChannelID = System.getenv("FORUM_CHANNEL_ID");
@@ -52,8 +50,8 @@ public class Main {
 			Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 			token = dotenv.get("BOT_TOKEN");
 			forumChannelID = dotenv.get("FORUM_CHANNEL_ID");
-			modRoleID = dotenv.get("MODERATOR_ROLE_ID");
-			guildID = System.getenv("GUILD_ID");
+			modRoleID = dotenv.get("MOD_ROLE_ID");
+			guildID = dotenv.get("GUILD_ID");
 		}
 
 		//Message.suppressContentIntentWarning();
@@ -70,7 +68,7 @@ public class Main {
 		jda.awaitReady();
 		jda.getPresence().setStatus(OnlineStatus.DO_NOT_DISTURB);
 		jda.getPresence().setActivity(Activity.customStatus("Following the design recipe!"));
-		jda.getGuildById(guildID).loadMembers().onSuccess((member) -> System.out.println("Done"));
+		jda.getGuildById(guildID).loadMembers().onSuccess((_) -> System.out.println("Done"));
 	}
 
 	public static String getForumChannelID() {

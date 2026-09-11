@@ -121,13 +121,11 @@ public class Utils {
 	 * @return If the Object is the forum channel
 	 */
 	public static boolean isForumChannel(Object object) {
-		if(!(object instanceof ThreadChannel)) {
+		if(!(object instanceof ThreadChannel thread)) {
 			return false;
 		}
-		//return Main.getForumChannelID().equals(((ThreadChannel) object).getId());
-		ThreadChannel thread = (ThreadChannel) object;
-    	return thread.getParentChannel() != null && 
-           Main.getForumChannelID().equals(thread.getParentChannel().getId());
+
+		return Main.getForumChannelID().equals(thread.getParentChannel().getId());
 	}
 
 	/**
