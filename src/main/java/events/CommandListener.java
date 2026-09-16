@@ -357,7 +357,7 @@ public class CommandListener extends ListenerAdapter {
 				String messageToSend = """
 						# HOW TO USE THIS BOT
 						**Office Hours Tickets**
-						Head over to <#1450952328516735209> and create a post.  A TA will be with you shortly.
+						Head over to <#%s> and create a post.  A TA will be with you shortly.
 						
 						**Commands**
 						`!claim` - TAs only.  Claim a ticket as yours.  Only one TA may claim a ticket at a time.
@@ -366,7 +366,7 @@ public class CommandListener extends ListenerAdapter {
 						`!reopen` - OP only.  If you need additional help related to the topic, run this command.  Only the original poster may reopen a ticket.
 						
 						**NOTE**: All Instructors and Mods can use all commands in any ticket.
-						""";
+						""".formatted(Main.getForumChannelID());
 				e.getChannel().sendMessage(messageToSend).queue();
 			}
 			if(message[0].equals("analyze") && e.getMember().hasPermission(Permission.ADMINISTRATOR)) {
