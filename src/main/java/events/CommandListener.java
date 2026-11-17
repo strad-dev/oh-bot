@@ -176,26 +176,27 @@ class CreateAnalysisThread implements Runnable {
 			count++;
 		}
 
-		System.out.println("====================================================================================================");
-		System.out.println("Full analysis finished.  Stats:");
-		System.out.println("Total Number of Tickets: " + tickets.size());
-		System.out.println("Tickets to TAs: " + taTracker);
-		System.out.println("Average time per TA: " + taTimeTracker);
-		System.out.println("Total Unclaims: " + unclaims);
-		System.out.println("Unclaims to TAs: " + taUnclaimTracker);
-		System.out.println("Students to Tickets: " + studentTracker);
-		System.out.println("Total Reopens: " + reopens);
-		System.out.println("--------------------------------------------------");
-		System.out.println("Average time between open and claim (peak hours): " + timeToClaimPeak / peakTickets);
-		System.out.println("Average time between open and claim (off-peak hours): " + timeToClaimOffPeak / offPeakTickets);
-		System.out.println("Average time between open and claim (in general): " + (timeToClaimPeak + timeToClaimOffPeak) / (peakTickets + offPeakTickets));
-		System.out.println("Total time spent waiting for TAs: " + (timeToClaimPeak + timeToClaimOffPeak));
-		System.out.println("--------------------------------------------------");
-		System.out.println("Average time between claim and close: " + claimToClose / (peakTickets + offPeakTickets));
-		System.out.println("Total time spent helping students: " + claimToClose);
-		System.out.println("--------------------------------------------------");
-		System.out.println("Tickets at Time: " + hourTracker);
-		e.getChannel().sendMessage("Finished analyzing.  Pretty print is currently not supported.  Refer to command line for results.").queue();
+		String stats = "====================================================================================================\n" +
+				"Full analysis finished.  Stats:\n" +
+				"Total Number of Tickets: " + tickets.size() + "\n" +
+				"Tickets to TAs: " + taTracker + "\n" +
+				"Average time per TA: " + taTimeTracker + "\n" +
+				"Total Unclaims: " + unclaims + "\n" +
+				"Unclaims to TAs: " + taUnclaimTracker + "\n" +
+				"Students to Tickets: " + studentTracker + "\n" +
+				"Total Reopens: " + reopens + "\n" +
+				"--------------------------------------------------\n" +
+				"Average time between open and claim (peak hours): " + (timeToClaimPeak / peakTickets) + "\n" +
+				"Average time between open and claim (off-peak hours): " + (timeToClaimOffPeak / offPeakTickets) + "\n" +
+				"Average time between open and claim (in general): " + ((timeToClaimPeak + timeToClaimOffPeak) / (peakTickets + offPeakTickets)) + "\n" +
+				"Total time spent waiting for TAs: " + (timeToClaimPeak + timeToClaimOffPeak) + "\n" +
+				"--------------------------------------------------\n" +
+				"Average time between claim and close: " + (claimToClose / (peakTickets + offPeakTickets)) + "\n" +
+				"Total time spent helping students: " + claimToClose + "\n" +
+				"--------------------------------------------------\n" +
+				"Tickets at Time: " + hourTracker;
+		System.out.println(stats);
+		e.getChannel().sendMessage("Finished analyzing.\n" + stats).queue();
 
 		finishAnalysis();
 	}
@@ -207,7 +208,6 @@ public class CommandListener extends ListenerAdapter {
 	@SuppressWarnings("DataFlowIssue")
 	public void onMessageReceived(MessageReceivedEvent e) {
 		if(!e.getAuthor().isBot() && e.getMessage().getContentRaw().startsWith("!")) {
-			//System.out.println("Command detected!");
 			String[] message = e.getMessage().getContentRaw().toLowerCase().substring(1).split(" ");
 			if(e.getChannel() instanceof ThreadChannel threadChannel && Utils.isForumChannel(threadChannel)) {
 				ForumChannel parent = threadChannel.getParentChannel().asForumChannel();
