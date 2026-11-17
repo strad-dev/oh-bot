@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.utils.SplitUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.OffsetDateTime;
@@ -176,29 +177,74 @@ class CreateAnalysisThread implements Runnable {
 			count++;
 		}
 
-		String stats = "====================================================================================================\n" +
-				"Full analysis finished.  Stats:\n" +
-				"Total Number of Tickets: " + tickets.size() + "\n" +
-				"Tickets to TAs: " + taTracker + "\n" +
-				"Average time per TA: " + taTimeTracker + "\n" +
-				"Total Unclaims: " + unclaims + "\n" +
-				"Unclaims to TAs: " + taUnclaimTracker + "\n" +
-				"Students to Tickets: " + studentTracker + "\n" +
-				"Total Reopens: " + reopens + "\n" +
-				"--------------------------------------------------\n" +
-				"Average time between open and claim (peak hours): " + (timeToClaimPeak / peakTickets) + "\n" +
-				"Average time between open and claim (off-peak hours): " + (timeToClaimOffPeak / offPeakTickets) + "\n" +
-				"Average time between open and claim (in general): " + ((timeToClaimPeak + timeToClaimOffPeak) / (peakTickets + offPeakTickets)) + "\n" +
-				"Total time spent waiting for TAs: " + (timeToClaimPeak + timeToClaimOffPeak) + "\n" +
-				"--------------------------------------------------\n" +
-				"Average time between claim and close: " + (claimToClose / (peakTickets + offPeakTickets)) + "\n" +
-				"Total time spent helping students: " + claimToClose + "\n" +
-				"--------------------------------------------------\n" +
-				"Tickets at Time: " + hourTracker;
+		Map<String, String> nameCache = new HashMap<>();
+		String stats = """
+				====================================================================================================
+				Full analysis finished.  Stats:
+				Total Number of Tickets: %s
+				Tickets to TAs: %s
+				Average time per TA: %s
+				Total Unclaims: %s
+				Unclaims to TAs: %s
+				Students to Tickets: %s
+				Total Reopens: %s
+				--------------------------------------------------
+				Average time between open and claim (peak hours): %s
+				Average time between open and claim (off-peak hours): %s
+				Average time between open and claim (in general): %s
+				Total time spent waiting for TAs: %s
+				--------------------------------------------------
+				Average time between claim and close: %s
+				Total time spent helping students: %s
+				--------------------------------------------------
+				Tickets at Time: %s""".formatted(
+				tickets.size(),
+				withNames(taTracker, nameCache),
+				withNames(taTimeTracker, nameCache),
+				unclaims,
+				withNames(taUnclaimTracker, nameCache),
+				withNames(studentTracker, nameCache),
+				reopens,
+				timeToClaimPeak / peakTickets,
+				timeToClaimOffPeak / offPeakTickets,
+				(timeToClaimPeak + timeToClaimOffPeak) / (peakTickets + offPeakTickets),
+				timeToClaimPeak + timeToClaimOffPeak,
+				claimToClose / (peakTickets + offPeakTickets),
+				claimToClose,
+				hourTracker);
 		System.out.println(stats);
-		e.getChannel().sendMessage("Finished analyzing.\n" + stats).queue();
+
+		// Discord caps messages at 2000 chars; split on newlines, falling back to spaces, then anywhere
+		List<String> chunks = SplitUtil.split("Finished analyzing.\n" + stats, Message.MAX_CONTENT_LENGTH,
+				SplitUtil.Strategy.NEWLINE, SplitUtil.Strategy.WHITESPACE, SplitUtil.Strategy.ANYWHERE);
+		for(String chunk : chunks) {
+			e.getChannel().sendMessage(chunk).queue();
+		}
 
 		finishAnalysis();
+	}
+
+	// Returns a copy of the map with user IDs replaced by display names (falls back to the ID if the user can't be found)
+	private static <V> Map<String, V> withNames(Map<String, V> byId, Map<String, String> nameCache) {
+		Map<String, V> byName = new HashMap<>();
+		for(Map.Entry<String, V> entry : byId.entrySet()) {
+			String name = nameCache.computeIfAbsent(entry.getKey(), CreateAnalysisThread::lookupName);
+			byName.put(name, entry.getValue());
+		}
+		return byName;
+	}
+
+	private static String lookupName(String id) {
+		try {
+			return e.getGuild().retrieveMemberById(id).complete().getEffectiveName();
+		} catch(Exception ignored) {
+			// not in the server anymore; try the global user instead
+		}
+		try {
+			return e.getJDA().retrieveUserById(id).complete().getEffectiveName();
+		} catch(Exception ignored) {
+			return id;
+		}
 	}
 }
 
