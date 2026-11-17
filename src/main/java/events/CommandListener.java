@@ -13,9 +13,11 @@ import org.jetbrains.annotations.Nullable;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.TextStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static events.CommandListener.finishAnalysis;
@@ -200,17 +202,17 @@ class CreateAnalysisThread implements Runnable {
 				Tickets at Time: %s""".formatted(
 				tickets.size(),
 				withNames(taTracker, nameCache),
-				withNames(taTimeTracker, nameCache),
+				formatDurations(withNames(taTimeTracker, nameCache)),
 				unclaims,
 				withNames(taUnclaimTracker, nameCache),
 				withNames(studentTracker, nameCache),
 				reopens,
-				timeToClaimPeak / peakTickets,
-				timeToClaimOffPeak / offPeakTickets,
-				(timeToClaimPeak + timeToClaimOffPeak) / (peakTickets + offPeakTickets),
-				timeToClaimPeak + timeToClaimOffPeak,
-				claimToClose / (peakTickets + offPeakTickets),
-				claimToClose,
+				formatDuration(timeToClaimPeak / peakTickets),
+				formatDuration(timeToClaimOffPeak / offPeakTickets),
+				formatDuration((timeToClaimPeak + timeToClaimOffPeak) / (peakTickets + offPeakTickets)),
+				formatDuration(timeToClaimPeak + timeToClaimOffPeak),
+				formatDuration(claimToClose / (peakTickets + offPeakTickets)),
+				formatDuration(claimToClose),
 				hourTracker);
 		System.out.println(stats);
 
@@ -232,6 +234,17 @@ class CreateAnalysisThread implements Runnable {
 			byName.put(name, entry.getValue());
 		}
 		return byName;
+	}
+
+	// Seconds -> HH:MM:SS (hours can go past 24, e.g. 51:03:07)
+	private static String formatDuration(long seconds) {
+		return "%02d:%02d:%02d".formatted(seconds / 3600, (seconds % 3600) / 60, seconds % 60);
+	}
+
+	private static Map<String, String> formatDurations(Map<String, Long> secondsByName) {
+		Map<String, String> formatted = new HashMap<>();
+		secondsByName.forEach((name, seconds) -> formatted.put(name, formatDuration(seconds)));
+		return formatted;
 	}
 
 	private static String lookupName(String id) {
@@ -446,7 +459,9 @@ public class CommandListener extends ListenerAdapter {
 		ZonedDateTime estTime = time.atZoneSameInstant(ZoneId.of("America/New_York"));
 		int hour = estTime.getHour();
 		if(hourTracker != null) {
-			hourTracker.put(estTime.getDayOfWeek() + " " + estTime.getHour(), hourTracker.getOrDefault(estTime.getDayOfWeek() + " " + estTime.getHour(), 0) + 1);
+			// e.g. "Friday 14:00-15:00"
+			String block = "%s %02d:00-%02d:00".formatted(estTime.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.US), hour, (hour + 1) % 24);
+			hourTracker.merge(block, 1, Integer::sum);
 		}
 		switch(estTime.getDayOfWeek()) {
 			case MONDAY -> {
